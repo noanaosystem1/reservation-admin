@@ -65,12 +65,14 @@ export async function checkInReservation(idOrToken: string, expectedSlotId?: str
     if (current.status === 'checked_in') return { success: false, message: '既に受付済みです' };
 
     // 枠の一致チェック
+    const slot = Array.isArray(current.slots) ? current.slots[0] : current.slots;
+    
     if (expectedSlotId && current.slot_id !== expectedSlotId) {
-        const slotTime = new Date(current.slots.start_time).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+        const slotTime = new Date(slot.start_time).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
         return { success: false, message: `枠が異なります（予約: ${slotTime}の回）` };
     }
 
-    const experienceUrl = await issueExperienceUrl(current.user_name || 'ゲスト', current.slots.room_id);
+    const experienceUrl = await issueExperienceUrl(current.user_name || 'ゲスト', slot.room_id);
     
     const { error } = await supabaseAdmin
         .from('reservations')
